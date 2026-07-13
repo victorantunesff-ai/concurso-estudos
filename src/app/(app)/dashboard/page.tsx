@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Clock, Target, CheckCircle2, BookOpen } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 
 type SessionRow = {
@@ -20,6 +21,12 @@ export default async function DashboardPage() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("full_name")
+    .eq("id", user!.id)
+    .single();
 
   const { data: sessionsData } = await supabase
     .from("study_sessions")
@@ -116,29 +123,65 @@ export default async function DashboardPage() {
     todayItems = (itemsData ?? []) as unknown as TodayItem[];
   }
 
+  const firstName = (profile?.full_name ?? user?.email ?? "").split(" ")[0];
+  const today = new Date().toLocaleDateString("pt-BR", {
+    weekday: "long",
+    day: "2-digit",
+    month: "long",
+  });
+
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
-        Dashboard
-      </h1>
+      <div>
+        <h1 className="text-2xl font-bold text-zinc-50">
+          Olá, {firstName}! 👋
+        </h1>
+        <p className="mt-1 text-sm capitalize text-zinc-500">{today}</p>
+      </div>
 
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-4">
         <div className="card">
-          <p className="text-sm text-zinc-500">Horas totais estudadas</p>
-          <p className="mt-1 text-3xl font-semibold text-zinc-900 dark:text-zinc-50">
+          <div className="mb-2 flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-500">
+            <Clock className="h-4 w-4" />
+          </div>
+          <p className="text-xs uppercase tracking-wide text-zinc-500">
+            Horas totais estudadas
+          </p>
+          <p className="mt-1 text-3xl font-semibold text-zinc-50">
             {(totalMinutes / 60).toFixed(1)}h
           </p>
         </div>
         <div className="card">
-          <p className="text-sm text-zinc-500">Questões feitas</p>
-          <p className="mt-1 text-3xl font-semibold text-zinc-900 dark:text-zinc-50">
+          <div className="mb-2 flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-500">
+            <Target className="h-4 w-4" />
+          </div>
+          <p className="text-xs uppercase tracking-wide text-zinc-500">
+            Questões feitas
+          </p>
+          <p className="mt-1 text-3xl font-semibold text-zinc-50">
             {totalQuestions}
           </p>
         </div>
         <div className="card">
-          <p className="text-sm text-zinc-500">Taxa de acerto</p>
-          <p className="mt-1 text-3xl font-semibold text-zinc-900 dark:text-zinc-50">
-            {accuracy}%
+          <div className="mb-2 flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-500">
+            <CheckCircle2 className="h-4 w-4" />
+          </div>
+          <p className="text-xs uppercase tracking-wide text-zinc-500">
+            Taxa de acerto
+          </p>
+          <p className="mt-1 text-3xl font-semibold text-zinc-50">
+            {totalQuestions > 0 ? `${accuracy}%` : "–"}
+          </p>
+        </div>
+        <div className="card">
+          <div className="mb-2 flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-500">
+            <BookOpen className="h-4 w-4" />
+          </div>
+          <p className="text-xs uppercase tracking-wide text-zinc-500">
+            Matérias
+          </p>
+          <p className="mt-1 text-3xl font-semibold text-zinc-50">
+            {subjectRows.length}
           </p>
         </div>
       </div>

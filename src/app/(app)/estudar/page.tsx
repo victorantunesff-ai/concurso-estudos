@@ -48,7 +48,9 @@ export default async function EstudarPage({
         </p>
       )}
 
-      <StudyTimer subjects={subjects} />
+      <div id="cronometro">
+        <StudyTimer subjects={subjects} />
+      </div>
 
       <div className="card">
         <h2 className="mb-3 font-medium text-zinc-900 dark:text-zinc-50">
