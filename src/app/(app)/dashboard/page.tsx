@@ -379,9 +379,7 @@ export default async function DashboardPage() {
 
       <div className="card">
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="font-medium text-zinc-900 dark:text-zinc-50">
-            Progresso dos editais
-          </h2>
+          <h2 className="font-semibold text-zinc-50">Desempenho por Edital</h2>
           <Link href="/editais" className="text-sm text-zinc-500 underline">
             Ver editais
           </Link>
@@ -391,7 +389,7 @@ export default async function DashboardPage() {
             Você ainda não está seguindo nenhum edital.
           </p>
         ) : (
-          <div className="flex flex-col gap-3">
+          <div className="grid gap-3 sm:grid-cols-2">
             {examProgress.map((exam) => {
               const pct =
                 exam.total > 0
@@ -401,21 +399,24 @@ export default async function DashboardPage() {
                 <Link
                   key={exam.examId}
                   href={`/editais/${exam.examId}`}
-                  className="block"
+                  className="flex items-center gap-4 rounded-lg border border-zinc-800 bg-zinc-900/60 p-4 transition-colors hover:border-zinc-700"
                 >
-                  <div className="mb-1 flex items-center justify-between text-sm">
-                    <span className="text-zinc-700 dark:text-zinc-300">
-                      {exam.name}
-                    </span>
-                    <span className="text-zinc-500">
-                      {exam.studied}/{exam.total} ({pct}%)
-                    </span>
+                  <div className="text-2xl font-bold text-indigo-400">
+                    {pct}%
                   </div>
-                  <div className="h-2 w-full overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
-                    <div
-                      className="h-full bg-emerald-500"
-                      style={{ width: `${pct}%` }}
-                    />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium text-zinc-200">
+                      {exam.name}
+                    </p>
+                    <p className="mb-1 text-xs text-zinc-500">
+                      {exam.studied}/{exam.total} matérias concluídas
+                    </p>
+                    <div className="h-2 w-full overflow-hidden rounded-full bg-zinc-800">
+                      <div
+                        className="h-full bg-indigo-500"
+                        style={{ width: `${pct}%` }}
+                      />
+                    </div>
                   </div>
                 </Link>
               );
