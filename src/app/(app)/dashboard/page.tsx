@@ -1,8 +1,17 @@
 import Link from "next/link";
-import { Clock, Target, CheckCircle2, BookOpen } from "lucide-react";
+import {
+  Clock,
+  Target,
+  CheckCircle2,
+  BookOpen,
+  HelpCircle,
+  Users,
+  CalendarDays,
+} from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 
 type SessionRow = {
+  session_date: string;
   duration_minutes: number;
   questions_done: number;
   questions_correct: number;
@@ -31,10 +40,29 @@ export default async function DashboardPage() {
   const { data: sessionsData } = await supabase
     .from("study_sessions")
     .select(
-      "duration_minutes, questions_done, questions_correct, subject_id, subjects(name)",
+      "session_date, duration_minutes, questions_done, questions_correct, subject_id, subjects(name)",
     )
     .eq("user_id", user!.id);
   const sessions = (sessionsData ?? []) as unknown as SessionRow[];
+
+  const { data: communityStats } = await supabase
+    .rpc("community_stats")
+    .single();
+  const community = communityStats as {
+    total_hours: number;
+    total_questions: number;
+    total_students: number;
+  } | null;
+
+  const currentYear = new Date().getFullYear();
+  const yearSessions = sessions.filter(
+    (s) => new Date(s.session_date).getFullYear() === currentYear,
+  );
+  const daysStudiedThisYear = new Set(
+    yearSessions.map((s) => s.session_date),
+  ).size;
+  const hoursThisYear =
+    yearSessions.reduce((sum, s) => sum + s.duration_minutes, 0) / 60;
 
   const totalMinutes = sessions.reduce((sum, s) => sum + s.duration_minutes, 0);
   const totalQuestions = sessions.reduce((sum, s) => sum + s.questions_done, 0);
@@ -182,6 +210,87 @@ export default async function DashboardPage() {
           </p>
           <p className="mt-1 text-3xl font-semibold text-zinc-50">
             {subjectRows.length}
+          </p>
+        </div>
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-3">
+        <div className="card flex flex-col gap-4 lg:col-span-2">
+          <div>
+            <h2 className="font-semibold text-zinc-50">Desempenho por Matéria</h2>
+            <p className="text-sm text-zinc-500">Baseado em questões</p>
+            <blockquote className="mt-3 border-l-2 border-indigo-500 pl-3 text-sm italic text-zinc-400">
+              &quot;Números não mentem. Ataque suas fraquezas.&quot;
+            </blockquote>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-3">
+            <div className="rounded-lg border border-zinc-800 bg-zinc-900/60 p-4">
+              <div className="mb-2 flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-500">
+                <Clock className="h-4 w-4" />
+              </div>
+              <p className="text-sm font-medium text-zinc-300">
+                Horas Registradas
+              </p>
+              <p className="mt-1 text-2xl font-bold text-zinc-50">
+                {community ? Math.round(community.total_hours).toLocaleString("pt-BR") : "–"}h
+              </p>
+              <p className="text-xs text-zinc-500">Total da comunidade</p>
+            </div>
+            <div className="rounded-lg border border-zinc-800 bg-zinc-900/60 p-4">
+              <div className="mb-2 flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-500">
+                <HelpCircle className="h-4 w-4" />
+              </div>
+              <p className="text-sm font-medium text-zinc-300">
+                Questões Registradas
+              </p>
+              <p className="mt-1 text-2xl font-bold text-zinc-50">
+                {community
+                  ? Math.round(community.total_questions).toLocaleString("pt-BR")
+                  : "–"}
+              </p>
+              <p className="text-xs text-zinc-500">Total da comunidade</p>
+            </div>
+            <div className="rounded-lg border border-emerald-900/50 bg-emerald-950/20 p-4">
+              <div className="mb-2 flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-500">
+                <Users className="h-4 w-4" />
+              </div>
+              <p className="text-sm font-medium text-zinc-300">
+                Alunos Estudando
+              </p>
+              <p className="mt-1 text-2xl font-bold text-emerald-400">
+                {community ? community.total_students.toLocaleString("pt-BR") : "–"}
+              </p>
+              <p className="text-xs text-zinc-500">Estudando conosco</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="card flex flex-col gap-3">
+          <h2 className="font-semibold text-zinc-50">Progresso Anual</h2>
+          <div className="flex items-center gap-3 rounded-lg border border-zinc-800 bg-zinc-900/60 p-4">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-500">
+              <CalendarDays className="h-4 w-4" />
+            </div>
+            <div>
+              <p className="text-lg font-bold text-zinc-50">
+                {daysStudiedThisYear} {daysStudiedThisYear === 1 ? "dia" : "dias"}
+              </p>
+              <p className="text-xs text-zinc-500">estudados este ano</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3 rounded-lg border border-zinc-800 bg-zinc-900/60 p-4">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-500">
+              <Clock className="h-4 w-4" />
+            </div>
+            <div>
+              <p className="text-lg font-bold text-zinc-50">
+                {hoursThisYear.toFixed(0)}h
+              </p>
+              <p className="text-xs text-zinc-500">de estudo este ano</p>
+            </div>
+          </div>
+          <p className="text-center text-sm text-emerald-400">
+            Continue assim! 👏
           </p>
         </div>
       </div>
